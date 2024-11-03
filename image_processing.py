@@ -1,7 +1,9 @@
 import cv2
 import os
+import numpy as np
 
 from define import Define
+from printer import Printer
 
 class ImageProcessor:
     def __init__(self):
@@ -19,27 +21,36 @@ class ImageProcessor:
         self.save_image(grayscaled_img, "resized and grayscaled")
         return grayscaled_img
     
-    def normalize(self, img):
-        normalized_img = cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-        self.save_image(normalized_img, "normalized")
-        return normalized_img
+    def normalizing(self, img):
+        image = cv2.normalize(img, 
+                              None, 
+                              alpha = Define.IMAGE_NORMALIZE_ALPHA,
+                              beta = Define.IMAGE_NORMALIZE_BETA, 
+                              norm_type = cv2.NORM_MINMAX)
+        self.save_image(image, "normalized")
+        return image
     
     def adjust_contrast_and_brightness(self, img):
-        adjusted_img = cv2.convertScaleAbs(img, 
-                                           alpha = Define.IMAGE_CONTRAST_ALPHA, beta = Define.IMAGE_BRIGHTNESS_BETA)
-        self.save_image(adjusted_img, "adjusted")
-        return adjusted_img
+        image = cv2.convertScaleAbs(img, 
+                                    alpha = Define.IMAGE_CONTRAST_ALPHA,
+                                    beta = Define.IMAGE_BRIGHTNESS_BETA)
+        self.save_image(image, "adjusted")
+        return image
     
     # Binarization (black and white) processing
-    def apply_adaptive_threshold(self, img):
-        applyed_img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-        self.save_image(applyed_img, "applyed")
-        return applyed_img
+    def adaptive_binarization(self, img):
+        image = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+        self.save_image(image, "adaptive binarization")
+        return image
     
-    def dithering(self, img):
-        _, dithered_image = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)
-        self.save_image(dithered_image, "dithered")
-        return dithered_image
+    def binarization(self, img):
+        _, image = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)
+        self.save_image(image, "binarization")
+        return image
+    
+    def gaussian_blur(self, img):
+        image = cv2.GaussianBlur(img, (5, 5), 0)
+        return image
     
     def save_image(self, img, img_name):
         if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
@@ -62,7 +73,7 @@ class ImageProcessor:
         if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
             os.makedirs(Define.IMAGE_DIR)
             
-        res = cv2.imwrite(Define.PRINTER_IMG_PATH, img, [cv2.IMWRITE_PNG_BILEVEL, 1])
+        res = cv2.imwrite(Define.PRINTER_IMG_PATH, img)
         if res:
             print(f"Save image for printing.")
         else:
@@ -82,26 +93,38 @@ class ImageProcessor:
 
         print(f"Original Size: {width}x{height} pixels")
         print(f"Converted Size: {width_mm:.2f}x{height_mm:.2f} mm at {Define.PRINTER_DPI} DPI")
-
+        
+    def show_image_to_print(self):
+        if not os.path.exists(Define.PRINTER_IMG_PATH):
+            print("[Error] Image does not exist")
+            return
+        
+        img = cv2.imread(Define.PRINTER_IMG_PATH)
+        
+        if img is None:
+            print("[Error] Unable to load image file. Please check the file format.")
+            
+        while(True):
+            cv2.imshow("Choose to print", img)
+            key = cv2.waitKey(1)
+            
+            if key == ord('p'):
+                Printer().print_image()
+                break
+            elif key == ord('r'):
+                break
+        
+        cv2.destroyWindow("Choose to print")
+   
     def process_image(self):
-        # Load the image
         img = cv2.imread(Define.CAPTURED_IMG_PATH)
 
         if img is None:
             print("[Error] Unable to load image.")
             return
         
-        # Resize and Grayscaling
         img = self.resize_and_grayscale(img)
-        
-        # Normalize
-        #img = self.normalize(img)
-        
-        # Apply adaptive threshold process
-        #img = self.apply_adaptive_threshold(img)
-        
-        # Dithering
-        img = self.dithering(img)
-        
-        # Save printing image
+
+        img = self.adaptive_binarization(img)
+
         self.save_image_for_printing(img)

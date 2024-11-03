@@ -2,12 +2,10 @@ import cv2
 
 from define import Define
 from image_processing import ImageProcessor
-from printer import Printer
 
 webcam = cv2.VideoCapture(0)
-
-imageProcessing = ImageProcessor()
-printer = Printer()
+#cv2.namedWindow("Webcam", cv2.WND_PROP_FULLSCREEN)
+#cv2.setWindowProperty("Webcam", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 if not webcam.isOpened():
     print("Error: Webcam Open Failed")
@@ -31,11 +29,10 @@ while True:
         break
     elif key == ord('e'): # Capture, Image process, Print
         #print("Captured Image Path:", Define.CAPTURED_IMG_PATH)
-        imageProcessing.capture_image(ret, frame)
-        imageProcessing.process_image()
-        printer.print_image()
+        ImageProcessor().capture_image(ret, frame)
+        ImageProcessor().process_image()
+        ImageProcessor().show_image_to_print()
         
-    
 # Release the webcam and close all OpenCV windows
 webcam.release()
 cv2.destroyAllWindows()
