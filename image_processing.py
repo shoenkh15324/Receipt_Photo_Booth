@@ -1,44 +1,76 @@
 import cv2
-from define import Define
-from printer import Printer
+import os
 
-class ImageProcessing:
+from define import Define
+
+class ImageProcessor:
     def __init__(self):
-        # Ensure the directory exists
-        # os.makedirs(CAPTURED_IMG_PATH, exist_ok=True)
         pass
 
-    def capture(self, ret, frame):
+    def capture_image(self, ret, frame):
         if ret:
-            cv2.imwrite(Define.CAPTURED_IMG_PATH, frame) # 640x480 pixels, jpeg
-            print("Image Capture Success")
+            self.save_image(frame, "Original")
         else:
-            print("Error: Image Capture Fail")
-
-    def convertCapturedImageToPrinterImg(self):
-    # Load the image
-        img = cv2.imread(Define.CAPTURED_IMG_PATH)
-
-        if img is None:
-            print("Error: Unable to load image.")
-            return
-        
-        # Scaling img size
+            print("[Error] Image Capture Fail")
+            
+    def resize_and_grayscale(self, img):
         resized_img = cv2.resize(img, Define.IMAGE_SCALING_SIZE)
+        grayscaled_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2GRAY)
+        self.save_image(grayscaled_img, "resized and grayscaled")
+        return grayscaled_img
+    
+    def normalize(self, img):
+        normalized_img = cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+        self.save_image(normalized_img, "normalized")
+        return normalized_img
+    
+    def adjust_contrast_and_brightness(self, img):
+        adjusted_img = cv2.convertScaleAbs(img, 
+                                           alpha = Define.IMAGE_CONTRAST_ALPHA, beta = Define.IMAGE_BRIGHTNESS_BETA)
+        self.save_image(adjusted_img, "adjusted")
+        return adjusted_img
+    
+    # Binarization (black and white) processing
+    def apply_adaptive_threshold(self, img):
+        applyed_img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+        self.save_image(applyed_img, "applyed")
+        return applyed_img
+    
+    def dithering(self, img):
+        _, dithered_image = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)
+        self.save_image(dithered_image, "dithered")
+        return dithered_image
+    
+    def save_image(self, img, img_name):
+        if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
+            os.makedirs(Define.IMAGE_DIR)
+            
+            # 확장자 추가 (예: .jpg)
+        if not img_name.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+            img_name += '.jpg'  # 기본값으로 .jpg 사용
+        
+        image_path = os.path.join(Define.IMAGE_DIR, img_name)
+        
+        res = cv2.imwrite(image_path, img)
+        if res:
+            print(f"Save {img_name} image.")
+        else:
+            print(f"[Error] Failed to save {img_name} image.")
 
-        # Grayscaling
-        image_gray = cv2.cvtColor(resized_img, cv2.COLOR_BGR2GRAY)
-
-        # Get the original dimensions
-        height, width, _ = resized_img.shape
-
-        # Image Normalize
-        #image_nomalized = cv2.normalize(image_gray, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-
-        # Contrast
-        #image_contrast = cv2.convertScaleAbs(image_gray, alpha = Define.IMAGE_CONTRAST_ALPHA)
-
-        image_binary = cv2.adaptiveThreshold(image_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+    # Save 1-bit black and white image in PNG format
+    def save_image_for_printing(self, img):
+        if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
+            os.makedirs(Define.IMAGE_DIR)
+            
+        res = cv2.imwrite(Define.PRINTER_IMG_PATH, img, [cv2.IMWRITE_PNG_BILEVEL, 1])
+        if res:
+            print(f"Save image for printing.")
+        else:
+            print(f"[Error] Fail to save image for printing.")
+        
+    def log_image_size(self, img):
+        # Get size of converted image
+        height, width, _ = img.shape
 
         # Calculate the dimensions in inches
         width_inch = width / Define.PRINTER_DPI
@@ -51,14 +83,25 @@ class ImageProcessing:
         print(f"Original Size: {width}x{height} pixels")
         print(f"Converted Size: {width_mm:.2f}x{height_mm:.2f} mm at {Define.PRINTER_DPI} DPI")
 
-        cv2.imwrite(Define.PRINTER_IMG_PATH, image_binary)
+    def process_image(self):
+        # Load the image
+        img = cv2.imread(Define.CAPTURED_IMG_PATH)
 
-        # Print image
-        Printer.printImage()
-    
-        # If you want to set DPI in the output image, you'll need a library like PIL (Pillow)
-        # from PIL import Image
-        # img_pil = Image.open(PRINTER_IMG_PATH)
-        # img_pil.save(PRINTER_IMG_PATH, dpi=(PRINTER_DPI, PRINTER_DPI))
-
-
+        if img is None:
+            print("[Error] Unable to load image.")
+            return
+        
+        # Resize and Grayscaling
+        img = self.resize_and_grayscale(img)
+        
+        # Normalize
+        #img = self.normalize(img)
+        
+        # Apply adaptive threshold process
+        #img = self.apply_adaptive_threshold(img)
+        
+        # Dithering
+        img = self.dithering(img)
+        
+        # Save printing image
+        self.save_image_for_printing(img)
