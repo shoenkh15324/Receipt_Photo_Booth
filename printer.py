@@ -14,6 +14,8 @@ class Printer:
         if current_os == "Linux":
             os.system(f"lp {Define.PRINTER_IMG_PATH}")
         elif current_os == "Windows":
-            subprocess.run(["print", Define.PRINTER_IMG_PATH], shell=True)
+            subprocess.run(["mspaint", "/pt", Define.PRINTER_IMG_PATH],
+                           check=True,
+                           shell=True)
         else:
             raise NotImplementedError("[Error] Printing is not supported on this operating system.")

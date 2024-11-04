@@ -56,7 +56,7 @@ class ImageProcessor:
         if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
             os.makedirs(Define.IMAGE_DIR)
             
-            # 확장자 추가 (예: .jpg)
+        # 확장자 추가 (예: .jpg)
         if not img_name.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp')):
             img_name += '.jpg'  # 기본값으로 .jpg 사용
         
@@ -125,6 +125,6 @@ class ImageProcessor:
         
         img = self.resize_and_grayscale(img)
 
-        img = self.adaptive_binarization(img)
+        #img = self.adaptive_binarization(img)
 
         self.save_image_for_printing(img)
