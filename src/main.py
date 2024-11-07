@@ -30,9 +30,7 @@ def main():
     while True:
         # Capture frame-by-frame
         ret, frame = webcam.read()
-        
-        button = Button.debounce_button()
-        keybaord = cv2.waitKey(1)
+        key = cv2.waitKey(1)
 
         if not ret:
             print("Error: Could not read frame")

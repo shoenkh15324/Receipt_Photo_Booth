@@ -3,7 +3,6 @@ import os
 
 from define import Define
 from printer import Printer
-from button import Button
 
 class ImageProcessor:
     def __init__(self):
@@ -103,6 +102,8 @@ class ImageProcessor:
         if img is None:
             print("[Error] Unable to load image file. Please check the file format.")
             
+        serial_comm = SerialCommunicator()    
+        
         while(True):
             cv2.imshow("Choose to print", img)
             keybaord = cv2.waitKey(1)
