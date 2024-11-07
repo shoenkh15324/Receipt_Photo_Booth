@@ -4,7 +4,7 @@ from define import Define
 from serial_communication import SerialCommunicator
 
 class Button():
-     def __init__(self, serial_comm, debounce_time = Define.BUTTON_DEBOUNCE_TIME):
+     def __init__(self, debounce_time = Define.BUTTON_DEBOUNCE_TIME):
           self.serial_comm = SerialCommunicator()
           self.debounce_time = debounce_time # sec
           self.last_pressed_time = 0

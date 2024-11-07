@@ -1,2 +1,7 @@
 # Ignore all ppt file
 *.pptx
+
+# Ignore all image file
+*.jpeg
+*.png
+*.gif

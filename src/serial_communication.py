@@ -6,7 +6,7 @@ from define import Define
 class SerialCommunicator:
      _instance = None
      
-     def __new__(cls, *args, **kwargs):
+     def __new__(cls):
           if cls._instance == None:
                cls._instance = super().__new__(cls)
           return cls._instance
@@ -21,8 +21,7 @@ class SerialCommunicator:
                self.timeout = timeout
                self.serial_connection = None
                self._initalized = True
-          
-     # Find and Connect arduino     
+            
      def find_arduino_port(self):
           ports = serial.tools.list_ports.comports()
           
@@ -35,7 +34,6 @@ class SerialCommunicator:
           print("No arduino port")
           return None
      
-     # Open and Connect serial port
      def connect(self):
           self.find_arduino_port()
           
