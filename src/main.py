@@ -11,14 +11,10 @@ def check_image_file_exist():
         os.makedirs(Define.IMAGE_FOLDER_DIR)
 
 def init():
-    serial_comm = SerialCommunicator()
-    
     check_image_file_exist()
-    serial_comm.connect()
+    SerialCommunicator.connect()
     
 def main():
-    serial_comm = SerialCommunicator()
-    
     webcam = cv2.VideoCapture(0)
     #cv2.namedWindow("Webcam", cv2.WND_PROP_FULLSCREEN)
     #cv2.setWindowProperty("Webcam", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
@@ -41,6 +37,8 @@ def main():
 
         # Display the resulting frame
         cv2.imshow('Webcam', frame)
+        keybaord = cv2.waitKey(1)
+        button = Button.debounce_button()
 
         if keybaord == ord('q'): # Quit
             break
