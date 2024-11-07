@@ -6,6 +6,8 @@ from image_processing import ImageProcessor
 from serial_communication import SerialCommunicator
 from button import Button
 
+#test
+
 def check_image_file_exist():
     if not os.path.exists(os.path.dirname(Define.IMAGE_FOLDER_DIR)):
         os.makedirs(Define.IMAGE_FOLDER_DIR)
