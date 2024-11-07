@@ -3,15 +3,22 @@ import os
 
 from define import Define
 from image_processing import ImageProcessor
+from serial_communication import SerialCommunicator
+from button import Button
 
 def check_image_file_exist():
-    if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
-        os.makedirs(Define.IMAGE_DIR)
+    if not os.path.exists(os.path.dirname(Define.IMAGE_FOLDER_DIR)):
+        os.makedirs(Define.IMAGE_FOLDER_DIR)
 
 def init():
+    serial_comm = SerialCommunicator()
+    
     check_image_file_exist()
+    serial_comm.connect()
     
 def main():
+    serial_comm = SerialCommunicator()
+    
     webcam = cv2.VideoCapture(0)
     #cv2.namedWindow("Webcam", cv2.WND_PROP_FULLSCREEN)
     #cv2.setWindowProperty("Webcam", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
@@ -23,21 +30,24 @@ def main():
     while True:
         # Capture frame-by-frame
         ret, frame = webcam.read()
-        key = cv2.waitKey(1)
+        
+        button = Button.debounce_button()
+        keybaord = cv2.waitKey(1)
 
         if not ret:
             print("Error: Could not read frame")
             exit()
 
+        # Vertical invert
         frame = cv2.flip(frame, 1)
 
         # Display the resulting frame
         cv2.imshow('Webcam', frame)
 
-        if key == ord('w'): # Quit
+        if keybaord == ord('q'): # Quit
             break
-        elif key == ord('e'): # Capture, Image process, Print
-            #print("Captured Image Path:", Define.CAPTURED_IMG_PATH)
+        
+        if button == 'W': # Capture, Image process, Print
             ImageProcessor().capture_image(ret, frame)
             ImageProcessor().process_image()
             ImageProcessor().show_image_to_print()
