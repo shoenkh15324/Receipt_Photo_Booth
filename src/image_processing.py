@@ -4,6 +4,8 @@ import numpy as np
 
 from define import Define
 from printer import Printer
+from serial_communication import SerialCommunicator
+from button import Button
 
 class ImageProcessor:
     def __init__(self):
@@ -96,7 +98,6 @@ class ImageProcessor:
         
     def show_image_to_print(self):
         if not os.path.exists(Define.PRINTER_IMG_PATH):
-            print("[Error] Image does not exist")
             return
         
         img = cv2.imread(Define.PRINTER_IMG_PATH)
@@ -104,14 +105,19 @@ class ImageProcessor:
         if img is None:
             print("[Error] Unable to load image file. Please check the file format.")
             
+        serial_comm = SerialCommunicator()    
+        
         while(True):
             cv2.imshow("Choose to print", img)
-            key = cv2.waitKey(1)
+            keybaord = cv2.waitKey(1)
+            button = Button.debounce_button()
             
-            if key == ord('p'):
-                Printer().print_image()
+            if keybaord == ord('q'):
                 break
-            elif key == ord('r'):
+            
+            if button == 'W':
+                Printer.print_image()
+            elif button == 'R':
                 break
         
         cv2.destroyWindow("Choose to print")
@@ -124,7 +130,5 @@ class ImageProcessor:
             return
         
         img = self.resize_and_grayscale(img)
-
-        #img = self.adaptive_binarization(img)
 
         self.save_image_for_printing(img)
