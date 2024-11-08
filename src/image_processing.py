@@ -1,10 +1,9 @@
 import cv2
 import os
-import time
+import numpy as np
 
 from define import Define
 from printer import Printer
-from keyhandle import KeyHandler
 
 class ImageProcessor:
     def __init__(self):
@@ -89,24 +88,25 @@ class ImageProcessor:
         
         img = cv2.imread(Define.PRINTER_IMG_PATH)
         
+        cv2.namedWindow("Choose to print", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("Choose to print", 
+                              cv2.WND_PROP_FULLSCREEN, 
+                              cv2.WINDOW_FULLSCREEN)
+        
         if img is None:
             print("[Error] Unable to load image file. Please check the file format.")
         
         while(True):
             cv2.imshow("Choose to print", img)
-            # cv2.namedWindow("Webcam", cv2.WND_PROP_FULLSCREEN)
-            # cv2.setWindowProperty("Webcam", 
-            #                       cv2.WND_PROP_FULLSCREEN, 
-            #                       cv2.WINDOW_FULLSCREEN)
             
             key = cv2.waitKey(1)
             
             if key == ord('q'):
                 break
-            elif key == ord('W'):
+            elif key == ord('w'):
                 Printer().print_image()
                 break
-            elif key == ord('R'):
+            elif key == ord('r'):
                 break
         
         cv2.destroyWindow("Choose to print")
@@ -116,24 +116,31 @@ class ImageProcessor:
             raise ValueError("No image file provided")
         
         # Match image type
-        if image1.dtype != image2.dtype:
-            image2 = image2.astype(image1.dtype)
+        if image1.dtype != np.uint8:
+            image1 = image1.astype(np.uint8)
+        if image2.dtype != np.uint8:
+            image2 = image2.astype(np.uint8)
             
         # Match image dimensions (make the number of color channels the same)
-        if image1.ndim != image2.ndim:
-            if image1.ndim == 2:  # 흑백 이미지
-                image1 = cv2.cvtColor(image1, cv2.COLOR_GRAY2BGR)
-            elif image2.ndim == 2:
-                image2 = cv2.cvtColor(image2, cv2.COLOR_GRAY2BGR)
+        if image2.ndim == 2:  # 흑백 이미지
+            image2 = cv2.cvtColor(image2, cv2.COLOR_GRAY2BGR)
+        if image1.ndim == 2:
+            image1 = cv2.cvtColor(image1, cv2.COLOR_GRAY2BGR)
 
         if direction == 'h':
-            if image1.shape[0] != image2.shape[0]:
-                image2 = cv2.resize(image2, (image2.shape[1], image1.shape[0]))
+            if image1.shape[0] != Define.IMAGE_HEIGHT:
+                image1 = cv2.resize(image1, (image1.shape[1], Define.IMAGE_HEIGHT))
+            if image2.shape[0] != Define.IMAGE_HEIGHT:
+                image2 = cv2.resize(image2, (image2.shape[1], Define.IMAGE_HEIGHT))
             return cv2.hconcat([image1, image2])
 
         elif direction == 'v':
-            if image1.shape[1] != image2.shape[1]:
-                image2 = cv2.resize(image2, (image1.shape[1], image2.shape[0]))
+            if image1.shape[1] != Define.IMAGE_WIDTH:
+                image1 = cv2.resize(image1, (Define.IMAGE_WIDTH, image1.shape[0]))
+            if image2.shape[1] != Define.IMAGE_WIDTH:
+                image2 = cv2.resize(image2, (Define.IMAGE_WIDTH, image2.shape[0]))
+            return cv2.vconcat([image1, image2])
+                
             return cv2.vconcat([image1, image2])
 
         else:
@@ -146,8 +153,6 @@ class ImageProcessor:
         if img is None:
             print("[Error] Unable to load image.")
             return
-        
-        img = self.rotate_image(img)
         
         img = self.resize_and_grayscale(img)
         

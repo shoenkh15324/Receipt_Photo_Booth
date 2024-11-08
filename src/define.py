@@ -12,7 +12,7 @@ class Define:
     # Image
     INCH_TO_MM = 25.4
     IMAGE_WIDTH = 500
-    IMAGE_HEIGHT = 665 # if rotate image 90 degree(CC), set 665.
+    IMAGE_HEIGHT = 375 # if rotate image 90 degree(CC), set 665.
     IMAGE_CONTRAST_ALPHA = 0.1 # Contrast (1.0 is no change)
     IMAGE_BRIGHTNESS_BETA = 30 # Brightness (0 is no change)
     IMAGE_NORMALIZE_ALPHA = 0
