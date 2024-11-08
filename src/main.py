@@ -4,7 +4,7 @@ import os
 from define import Define
 from image_processing import ImageProcessor
 from serial_communication import SerialCommunicator
-from button import Button
+from keyhandle import KeyHandler
 
 def check_image_file_exist():
     if not os.path.exists(os.path.dirname(Define.IMAGE_FOLDER_DIR)):
@@ -12,7 +12,7 @@ def check_image_file_exist():
 
 def init():
     check_image_file_exist()
-    SerialCommunicator.connect()
+    SerialCommunicator().connect()
     
 def main():
     webcam = cv2.VideoCapture(0)
@@ -34,13 +34,12 @@ def main():
         frame = cv2.flip(frame, 1)
 
         cv2.imshow('Webcam', frame)
-        keybaord = cv2.waitKey(1)
-        button = Button.debounce_button()
-
-        if keybaord == ord('q'): # Quit
-            break
         
-        if button == 'W': # Capture, Image process, Print
+        key = cv2.waitKey(1)
+
+        if key == ord('q'): # Quit
+            break
+        elif key == ord('W'): # Capture, Image process, Print
             ImageProcessor().capture_image(ret, frame)
             ImageProcessor().process_image()
             ImageProcessor().show_image_to_print()

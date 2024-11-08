@@ -1,9 +1,10 @@
 import cv2
 import os
+import time
 
 from define import Define
 from printer import Printer
-from button import Button
+from keyhandle import KeyHandler
 
 class ImageProcessor:
     def __init__(self):
@@ -58,13 +59,13 @@ class ImageProcessor:
         return image
     
     def save_image(self, img, img_name):
-        if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
-            os.makedirs(Define.IMAGE_DIR)
+        if not os.path.exists(os.path.dirname(Define.IMAGE_FOLDER_DIR)):
+            os.makedirs(Define.IMAGE_FOLDER_DIR)
             
         if not img_name.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp')):
             img_name += '.jpg'
         
-        image_path = os.path.join(Define.IMAGE_DIR, img_name)
+        image_path = os.path.join(Define.IMAGE_FOLDER_DIR, img_name)
         
         res = cv2.imwrite(image_path, img)
         if res:
@@ -73,8 +74,8 @@ class ImageProcessor:
             print(f"[Error] Failed to save {img_name} image.")
 
     def save_image_for_printing(self, img):
-        if not os.path.exists(os.path.dirname(Define.IMAGE_DIR)):
-            os.makedirs(Define.IMAGE_DIR)
+        if not os.path.exists(os.path.dirname(Define.IMAGE_FOLDER_DIR)):
+            os.makedirs(Define.IMAGE_FOLDER_DIR)
             
         res = cv2.imwrite(Define.PRINTER_IMG_PATH, img)
         if res:
@@ -98,23 +99,32 @@ class ImageProcessor:
             #                       cv2.WND_PROP_FULLSCREEN, 
             #                       cv2.WINDOW_FULLSCREEN)
             
-            keybaord = cv2.waitKey(1)
-            button = Button.debounce_button()
+            key = cv2.waitKey(1)
             
-            if keybaord == ord('q'):
+            if key == ord('q'):
                 break
-            
-            if button == 'W':
-                Printer.print_image()
+            elif key == ord('W'):
+                Printer().print_image()
                 break
-            elif button == 'R':
+            elif key == ord('R'):
                 break
         
         cv2.destroyWindow("Choose to print")
         
-    def concat_images(image1, image2, direction):
+    def concat_images(self, image1, image2, direction):
         if image1 is None or image2 is None:
-            raise ValueError("No image file")
+            raise ValueError("No image file provided")
+        
+        # Match image type
+        if image1.dtype != image2.dtype:
+            image2 = image2.astype(image1.dtype)
+            
+        # Match image dimensions (make the number of color channels the same)
+        if image1.ndim != image2.ndim:
+            if image1.ndim == 2:  # 흑백 이미지
+                image1 = cv2.cvtColor(image1, cv2.COLOR_GRAY2BGR)
+            elif image2.ndim == 2:
+                image2 = cv2.cvtColor(image2, cv2.COLOR_GRAY2BGR)
 
         if direction == 'h':
             if image1.shape[0] != image2.shape[0]:
@@ -127,7 +137,7 @@ class ImageProcessor:
             return cv2.vconcat([image1, image2])
 
         else:
-            raise ValueError("direction argument must be 'h' or 'v'.")
+            raise ValueError("The 'direction' argument must be 'h' or 'v'.")
    
     def process_image(self):
         img = cv2.imread(Define.CAPTURED_IMG_PATH)
@@ -141,6 +151,8 @@ class ImageProcessor:
         
         img = self.resize_and_grayscale(img)
         
-        img = self.concat_images(img, logo, 'v')
+        img = self.concat_images(logo, img, 'v')
 
         self.save_image_for_printing(img)
+        
+        
